@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>記事本數位與類比時鐘 - 最終定稿 (呼吸空間版)</title>
+    <meta charset="UTF-8">
+    
+    <style>
+        /* CSS 樣式區 */
+        body {
+            /* 顏色、字體、全屏設置 */
+            background-color: #000000; 
+            color: #6aa84f;             
+            font-family: 'Comic Sans MS', cursive; 
+            
+            height: 100vh;
+            display: flex;
+            flex-direction: column; 
+            align-items: center;
+            margin: 0;
+            padding: 0;
+            font-weight: normal; 
+            overflow: hidden; 
+            
+            /* 關鍵：垂直居中，實現上下對稱和最小留白 */
+            justify-content: center; 
+        }
+
+        /* 主包裝器：讓內容盡可能佔滿空間 */
+        #mainWrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 0; 
+            padding-bottom: 0; 
+        }
+
+        /* 外部容器：控制時鐘主體寬度 */
+        #clockContainer {
+            display: flex;
+            flex-direction: column; 
+            align-items: center;
+            position: relative; 
+            padding: 0 2vw; /* 保持左右內邊距 */
+            width: 90vw; 
+        }
+
+        /* 頂部日期容器 - 實現左中右佈局 */
+        #topRowContainer {
+            display: flex;
+            justify-content: space-between; 
+            align-items: flex-end; 
+            width: 100%; 
+            /* *** 調整：增加日期與主體間距 (2vw -> 3.5vw) *** */
+            margin-bottom: 3.5vw; 
+            line-height: 1; 
+        }
+
+        /* 輔助資訊字體 (8vw) */
+        #dateLabel, #dayOfWeek, #dateValue {
+            font-size: 8vw; 
+            font-weight: normal; 
+            padding: 0 1vw; 
+        }
+
+        /* 關鍵變動：水平時間容器 */
+        #timeRow {
+            display: flex;
+            align-items: center; 
+            justify-content: center; 
+            gap: 5vw; 
+            /* *** 調整：增加與上下兩行間距 (2vw 0 -> 3.5vw 0) *** */
+            margin: 3.5vw 0; 
+        }
+
+        /* 數位時鐘樣式：主體最大化字體 (16vw) */
+        #digitalTimeDisplay {
+            font-size: 16vw; 
+            font-weight: normal; 
+            letter-spacing: 2px; 
+            line-height: 1; 
+            height: var(--clock-size); 
+            display: flex;
+            align-items: center;
+            justify-content: flex-end; 
+        }
+
+        /* 類比時鐘樣式：主體最大化尺寸 (22vmin) */
+        #analogClock {
+            --clock-size: 22vmin; 
+            width: var(--clock-size);
+            height: var(--clock-size);
+            border: 0.8vw solid #6aa84f; 
+            border-radius: 50%;
+            position: relative;
+            flex-shrink: 0; 
+        }
+        
+        /* 指針通用樣式 */
+        .hand {
+            position: absolute;
+            bottom: 50%; 
+            left: 50%; 
+            transform-origin: bottom center; 
+            background-color: #6aa84f;
+            border-radius: 50px;
+            transform: translateX(-50%) rotate(0deg); 
+        }
+
+        /* 指針尺寸使用 vmin */
+        .second-hand { width: 0.3vmin; height: 45%; opacity: 0.8; }
+        .minute-hand { width: 0.6vmin; height: 40%; opacity: 0.9; }
+        .hour-hand { width: 0.9vmin; height: 30%; }
+        
+        /* 週次顯示樣式 */
+        #weekDisplay {
+            font-size: 8vw; 
+            font-weight: normal; 
+            /* *** 調整：增加週次與主體間距 (2vw -> 3.5vw) *** */
+            margin-top: 3.5vw; 
+            text-align: center;
+            line-height: 1;
+        }
+
+        /* 更改按鈕樣式 (維持懸停顯示) */
+        #changeButton {
+            position: absolute;
+            top: 0;
+            right: 1vw;
+            
+            opacity: 0; 
+            transition: opacity 0.3s ease; 
+            
+            background-color: #f7b538; 
+            color: #000000; 
+            border: none;
+            padding: 0.5vw 1vw;
+            cursor: pointer;
+            border-radius: 5px;
+            font-family: inherit; 
+            
+            font-size: 100%; 
+            font-weight: normal; 
+            max-font-size: 100%; 
+        }
+
+        /* 按鈕文字：維持 2vw / 18px 限制 */
+        #changeButtonText {
+            font-size: 2vw; 
+            max-font-size: 18px; 
+            color: #000000; 
+            line-height: 1;
+        }
+
+        /* 游標移入 #clockContainer 時，只顯示按鈕 */
+        #clockContainer:hover #changeButton {
+            opacity: 1; 
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="mainWrapper">
+
+        <div id="clockContainer">
+            
+            <div id="topRowContainer">
+                <div id="dateLabel">Date</div>
+                <div id="dateValue"></div>
+                <div id="dayOfWeek"></div>
+            </div>      
+
+            <div id="timeRow">
+                
+                <div id="digitalTimeDisplay"></div>
+
+                <div id="analogClock">
+                    <div class="hand hour-hand" id="hourHand"></div>
+                    <div class="hand minute-hand" id="minuteHand"></div>
+                    <div class="hand second-hand" id="secondHand"></div>
+                </div>
+            </div>
+            
+            <button id="changeButton" onclick="resetSchoolDate()">
+                <span id="changeButtonText">更改開學日</span>
+            </button>
+        </div>
+        
+        <div id="weekDisplay"></div> 
+    
+    </div>
+    <script>
+        const START_DATE_KEY = 'SchoolStartDate';
+        const MS_PER_DAY = 1000 * 60 * 60 * 24;
+        const WEEK_DISPLAY_ID = 'weekDisplay'; 
+        
+        const digitalDisplay = document.getElementById('digitalTimeDisplay');
+        const secondHand = document.getElementById('secondHand');
+        const minuteHand = document.getElementById('minuteHand');
+        const hourHand = document.getElementById('hourHand');
+
+        function setupSchoolDate() {
+            let storedDate = localStorage.getItem(START_DATE_KEY);
+            if (!storedDate) {
+                let userInput = prompt("請輸入您的開學日期 (格式：YYYY-MM-DD)，以計算週次：");
+                if (userInput) {
+                    let parsedDate = new Date(userInput);
+                    if (!isNaN(parsedDate.getTime())) {
+                        localStorage.setItem(START_DATE_KEY, userInput);
+                        alert(`開學日已儲存為：${userInput}`);
+                    } else {
+                        alert("日期格式不正確，將不會儲存。");
+                    }
+                }
+            }
+        }
+        
+        function resetSchoolDate() {
+            localStorage.removeItem(START_DATE_KEY);
+            setupSchoolDate();
+            updateClock();
+        }
+
+        // 核心功能：計算週次 
+        function calculateWeekNumber(startDateStr) {
+            const startDate = new Date(startDateStr);
+            const today = new Date();
+            
+            const startDayOfWeek = startDate.getDay(); 
+            const weekOneStart = new Date(startDate.getTime());
+            weekOneStart.setDate(startDate.getDate() - startDayOfWeek);
+            
+            weekOneStart.setHours(0, 0, 0, 0); 
+            today.setHours(0, 0, 0, 0); 
+
+            const diffTime = today.getTime() - weekOneStart.getTime();
+            const diffDays = Math.ceil(diffTime / MS_PER_DAY);
+            
+            const weekNumber = Math.floor(diffDays / 7) + 1;
+            return `Week ${weekNumber}`;
+        }
+
+        let showColon = true;
+
+        function updateClock() {
+            var now = new Date(); 
+            var hours = now.getHours(); 
+            var minutes = now.getMinutes();
+            var seconds = now.getSeconds();
+            
+            const pad = (num) => (num < 10 ? "0" : "") + num;
+            
+            // 1. 數位時間更新
+            const separator = showColon ? ":" : " "; 
+            var timeString = `${pad(hours)}${separator}${pad(minutes)}`; 
+            showColon = !showColon; 
+            digitalDisplay.innerHTML = timeString;
+
+            // 2. 類比指針更新
+            const secondsDegree = (seconds / 60) * 360; 
+            const minutesDegree = (minutes / 60) * 360 + (seconds / 60) * 6;
+            const hoursDegree = ((hours % 12) / 12) * 360 + (minutes / 60) * 30;
+
+            secondHand.style.transform = `translateX(-50%) rotate(${secondsDegree}deg)`;
+            minuteHand.style.transform = `translateX(-50%) rotate(${minutesDegree}deg)`;
+            hourHand.style.transform = `translateX(-50%) rotate(${hoursDegree}deg)`;
+
+            // 3. 更新日期和週次
+            var month = now.getMonth() + 1; 
+            var day = now.getDate();
+            var dayOfWeek = now.getDay(); 
+            var weekdaysAbbr = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+            var dateValueString = `${month}/${day}`;
+            var dayOfWeekString = `${weekdaysAbbr[dayOfWeek]}`;
+
+            document.getElementById('dateValue').innerHTML = dateValueString; 
+            document.getElementById('dayOfWeek').innerHTML = dayOfWeekString; 
+
+            const storedDate = localStorage.getItem(START_DATE_KEY);
+            const weekElement = document.getElementById(WEEK_DISPLAY_ID);
+            
+            if (weekElement) {
+                if (storedDate) {
+                    weekElement.innerHTML = calculateWeekNumber(storedDate);
+                } else {
+                    weekElement.innerHTML = `❌ 尚未設定開學日`;
+                }
+            }
+        }
+
+        // *** 腳本執行順序 ***
+        setupSchoolDate(); 
+        setInterval(updateClock, 1000); 
+        updateClock();
+    </script>
+
+</body>
+</html>
