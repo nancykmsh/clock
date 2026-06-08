@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>記事本數位與類比時鐘 - 最終定稿 (呼吸空間版)</title>
+    <title>記事本數位與類比時鐘 - 流暢滑動全螢幕版</title>
     <meta charset="UTF-8">
     
     <style>
         /* CSS 樣式區 */
         body {
-            /* 顏色、字體、全屏設置 */
             background-color: #000000; 
             color: #6aa84f;             
             font-family: 'Comic Sans MS', cursive; 
@@ -20,59 +19,59 @@
             padding: 0;
             font-weight: normal; 
             overflow: hidden; 
-            
-            /* 關鍵：垂直居中，實現上下對稱和最小留白 */
             justify-content: center; 
         }
 
-        /* 主包裝器：讓內容盡可能佔滿空間 */
+        /* 主包裝器：讓內容盡可能佔滿空間，並加入游標指標提示可點擊 */
         #mainWrapper {
             display: flex;
             flex-direction: column;
             align-items: center;
             padding-top: 0; 
             padding-bottom: 0; 
+            cursor: pointer; 
+            width: 100vw;
+            height: 100vh;
+            justify-content: center;
         }
 
-        /* 外部容器：控制時鐘主體寬度 */
+        /* 外部容器 */
         #clockContainer {
             display: flex;
             flex-direction: column; 
             align-items: center;
             position: relative; 
-            padding: 0 2vw; /* 保持左右內邊距 */
+            padding: 0 2vw; 
             width: 90vw; 
         }
 
-        /* 頂部日期容器 - 實現左中右佈局 */
+        /* 頂部日期容器 */
         #topRowContainer {
             display: flex;
             justify-content: space-between; 
             align-items: flex-end; 
             width: 100%; 
-            /* *** 調整：增加日期與主體間距 (2vw -> 3.5vw) *** */
             margin-bottom: 3.5vw; 
             line-height: 1; 
         }
 
-        /* 輔助資訊字體 (8vw) */
+        /* 輔助資訊字體 */
         #dateLabel, #dayOfWeek, #dateValue {
             font-size: 8vw; 
             font-weight: normal; 
             padding: 0 1vw; 
         }
 
-        /* 關鍵變動：水平時間容器 */
+        /* 水平時間容器 */
         #timeRow {
             display: flex;
             align-items: center; 
             justify-content: center; 
             gap: 5vw; 
-            /* *** 調整：增加與上下兩行間距 (2vw 0 -> 3.5vw 0) *** */
             margin: 3.5vw 0; 
         }
 
-        /* 數位時鐘樣式：主體最大化字體 (16vw) */
+        /* 數位時鐘樣式 */
         #digitalTimeDisplay {
             font-size: 16vw; 
             font-weight: normal; 
@@ -84,7 +83,7 @@
             justify-content: flex-end; 
         }
 
-        /* 類比時鐘樣式：主體最大化尺寸 (22vmin) */
+        /* 類比時鐘樣式：主體最大化尺寸 */
         #analogClock {
             --clock-size: 22vmin; 
             width: var(--clock-size);
@@ -106,7 +105,6 @@
             transform: translateX(-50%) rotate(0deg); 
         }
 
-        /* 指針尺寸使用 vmin */
         .second-hand { width: 0.3vmin; height: 45%; opacity: 0.8; }
         .minute-hand { width: 0.6vmin; height: 40%; opacity: 0.9; }
         .hour-hand { width: 0.9vmin; height: 30%; }
@@ -115,13 +113,12 @@
         #weekDisplay {
             font-size: 8vw; 
             font-weight: normal; 
-            /* *** 調整：增加週次與主體間距 (2vw -> 3.5vw) *** */
             margin-top: 3.5vw; 
             text-align: center;
             line-height: 1;
         }
 
-        /* 更改按鈕樣式 (維持懸停顯示) */
+        /* 更改按鈕樣式 */
         #changeButton {
             position: absolute;
             top: 0;
@@ -141,9 +138,9 @@
             font-size: 100%; 
             font-weight: normal; 
             max-font-size: 100%; 
+            z-index: 10; 
         }
 
-        /* 按鈕文字：維持 2vw / 18px 限制 */
         #changeButtonText {
             font-size: 2vw; 
             max-font-size: 18px; 
@@ -151,15 +148,29 @@
             line-height: 1;
         }
 
-        /* 游標移入 #clockContainer 時，只顯示按鈕 */
         #clockContainer:hover #changeButton {
             opacity: 1; 
+        }
+
+        /* 狀態提示字 */
+        #toastNotice {
+            position: fixed;
+            bottom: 20px;
+            background: rgba(106, 168, 79, 0.2);
+            color: #6aa84f;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 100;
         }
     </style>
 </head>
 <body>
     
-    <div id="mainWrapper">
+    <div id="mainWrapper" onclick="toggleFullscreen(event)">
 
         <div id="clockContainer">
             
@@ -170,7 +181,6 @@
             </div>      
 
             <div id="timeRow">
-                
                 <div id="digitalTimeDisplay"></div>
 
                 <div id="analogClock">
@@ -180,7 +190,7 @@
                 </div>
             </div>
             
-            <button id="changeButton" onclick="resetSchoolDate()">
+            <button id="changeButton" onclick="event.stopPropagation(); resetSchoolDate()">
                 <span id="changeButtonText">更改開學日</span>
             </button>
         </div>
@@ -188,6 +198,9 @@
         <div id="weekDisplay"></div> 
     
     </div>
+
+    <div id="toastNotice"></div>
+
     <script>
         const START_DATE_KEY = 'SchoolStartDate';
         const MS_PER_DAY = 1000 * 60 * 60 * 24;
@@ -197,6 +210,8 @@
         const secondHand = document.getElementById('secondHand');
         const minuteHand = document.getElementById('minuteHand');
         const hourHand = document.getElementById('hourHand');
+
+        let wakeLock = null;
 
         function setupSchoolDate() {
             let storedDate = localStorage.getItem(START_DATE_KEY);
@@ -220,7 +235,6 @@
             updateClock();
         }
 
-        // 核心功能：計算週次 
         function calculateWeekNumber(startDateStr) {
             const startDate = new Date(startDateStr);
             const today = new Date();
@@ -239,26 +253,29 @@
             return `Week ${weekNumber}`;
         }
 
-        let showColon = true;
-
+        // 核心修改：利用 requestAnimationFrame 實現極致流暢配速
         function updateClock() {
             var now = new Date(); 
             var hours = now.getHours(); 
             var minutes = now.getMinutes();
             var seconds = now.getSeconds();
+            var milliseconds = now.getMilliseconds(); // 取得毫秒來做平滑計算
             
             const pad = (num) => (num < 10 ? "0" : "") + num;
             
-            // 1. 數位時間更新
-            const separator = showColon ? ":" : " "; 
+            // 1. 數位時間與冒號閃爍：依然根據秒數奇偶維持一秒閃爍一次的穩定節奏
+            const separator = (seconds % 2 === 0) ? ":" : " "; 
             var timeString = `${pad(hours)}${separator}${pad(minutes)}`; 
-            showColon = !showColon; 
             digitalDisplay.innerHTML = timeString;
 
-            // 2. 類比指針更新
-            const secondsDegree = (seconds / 60) * 360; 
-            const minutesDegree = (minutes / 60) * 360 + (seconds / 60) * 6;
-            const hoursDegree = ((hours % 12) / 12) * 360 + (minutes / 60) * 30;
+            // 2. 類比指針更新（加入毫秒計算，達到機械錶般的緩慢配速滑動）
+            const preciseSeconds = seconds + (milliseconds / 1000);
+            const preciseMinutes = minutes + (preciseSeconds / 60);
+            const preciseHours = (hours % 12) + (preciseMinutes / 60);
+
+            const secondsDegree = (preciseSeconds / 60) * 360; 
+            const minutesDegree = (preciseMinutes / 60) * 360;
+            const hoursDegree = (preciseHours / 12) * 360;
 
             secondHand.style.transform = `translateX(-50%) rotate(${secondsDegree}deg)`;
             minuteHand.style.transform = `translateX(-50%) rotate(${minutesDegree}deg)`;
@@ -285,14 +302,65 @@
                     weekElement.innerHTML = `❌ 尚未設定開學日`;
                 }
             }
+
+            // 讓瀏覽器在準備好渲染下一幀時再次執行，達到 60 FPS 的流暢度
+            requestAnimationFrame(updateClock);
+        }
+
+        // === 全螢幕切換功能 ===
+        function toggleFullscreen(event) {
+            if (event.target.closest('#changeButton')) return;
+
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen()
+                    .then(() => {
+                        showToast("已開啟全螢幕並常亮");
+                        requestWakeLock(); 
+                    })
+                    .catch(err => {
+                        console.log(`無法啟用全螢幕: ${err.message}`);
+                    });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // === 防休眠 (Wake Lock) 功能 ===
+        async function requestWakeLock() {
+            if ('wakeLock' in navigator) {
+                try {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('螢幕常亮已啟用');
+                } catch (err) {
+                    console.log(`防休眠啟用失敗: ${err.message}`);
+                }
+            }
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                showToast("已退出全螢幕與常亮模式");
+                if (wakeLock !== null) {
+                    wakeLock.release();
+                    wakeLock = null;
+                }
+            }
+        });
+
+        function showToast(text) {
+            const toast = document.getElementById('toastNotice');
+            toast.innerText = text;
+            toast.style.opacity = '1';
+            setTimeout(() => {
+                toast.style.opacity = '0';
+            }, 2500);
         }
 
         // *** 腳本執行順序 ***
         setupSchoolDate(); 
-        setInterval(updateClock, 1000); 
-        updateClock();
+        // 使用 requestAnimationFrame 取代原本的 setInterval，畫面移動更細緻
+        requestAnimationFrame(updateClock);
     </script>
 
 </body>
-
 </html>
